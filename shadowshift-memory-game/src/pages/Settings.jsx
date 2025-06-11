@@ -13,24 +13,7 @@ export default function Settings() {
           textAlign: "left",
         }}
       >
-        <div>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
-            Sound Effects
-          </label>
-          <label>
-            <input type="checkbox" style={{ marginRight: "8px" }} /> Enable sound effects
-          </label>
-        </div>
-
-        <div>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
-            Animations
-          </label>
-          <label>
-            <input type="checkbox" style={{ marginRight: "8px" }} defaultChecked /> Enable animations
-          </label>
-        </div>
-
+        {/* Only Default Difficulty remains */}
         <div>
           <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
             Default Difficulty

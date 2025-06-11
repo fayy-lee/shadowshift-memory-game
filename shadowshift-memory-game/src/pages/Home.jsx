@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LevelSelector from "../components/LevelSelector";
 
 export default function Home() {
+  const [selectedLevel, setSelectedLevel] = useState("easy");
   const navigate = useNavigate();
+
+  function startGame() {
+    navigate("/game", { state: { difficulty: selectedLevel } });
+  }
 
   return (
     <div className="container" style={{ textAlign: "center", paddingTop: "4rem" }}>
@@ -38,15 +44,17 @@ export default function Home() {
         <ul style={{ lineHeight: "1.8", fontSize: "1.1rem", paddingLeft: "1rem" }}>
           <li>Click on cards to flip them.</li>
           <li>Match pairs of the same emoji!</li>
-          <li>Try to finish with as few moves as possible.</li>
-          <li>You can adjust difficulty in the settings.</li>
+          <li>Try to finish with as few moves and as little time as possible.</li>
           <li>Have fun and sharpen your memory! 🧠</li>
         </ul>
       </div>
 
+      {/* Difficulty Selector */}
+      <LevelSelector selectedLevel={selectedLevel} onChange={setSelectedLevel} />
+
       {/* Start Game Button */}
       <button
-        onClick={() => navigate("/game")}
+        onClick={startGame}
         style={{
           marginTop: "2.5rem",
           padding: "1rem 2rem",
