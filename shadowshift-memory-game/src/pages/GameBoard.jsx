@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const themes = {
+const allThemes = {
   fruits: ["🍎", "🍌", "🍇", "🍉", "🥝", "🍒", "🍍", "🥥"],
-  animals: ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐵", "🐯"],
+  animals: ["🐶", "🐱", "🦊", "🐸", "🐵", "🐮", "🐰", "🐼"],
 };
 
 function shuffleArray(array) {
@@ -12,16 +12,12 @@ function shuffleArray(array) {
 
 export default function GameBoard() {
   const location = useLocation();
+
+  // Read difficulty and theme from route state or default
   const difficulty = location.state?.difficulty || "easy";
   const theme = location.state?.theme || "fruits";
 
-  const [cards, setCards] = useState([]);
-  const [flipped, setFlipped] = useState([]);
-  const [matched, setMatched] = useState([]);
-  const [disableClicks, setDisableClicks] = useState(false);
-  const [moves, setMoves] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
+  const symbols = allThemes[theme] || allThemes.fruits;
 
   const pairsCount = {
     easy: 4,
@@ -29,8 +25,17 @@ export default function GameBoard() {
     hard: 8,
   }[difficulty] || 4;
 
-  useEffect(() => {
-    const symbols = themes[theme] || themes.fruits;
+  const [cards, setCards] = useState([]);
+  const [flipped, setFlipped] = useState([]);
+  const [matched, setMatched] = useState([]);
+  const [disableClicks, setDisableClicks] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [moves, setMoves] = useState(0);
+  const [timer, setTimer] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const initializeGame = () => {
     const selectedSymbols = symbols.slice(0, pairsCount);
     const deck = shuffleArray([...selectedSymbols, ...selectedSymbols]).map((symbol, index) => ({
       id: index,
@@ -42,20 +47,26 @@ export default function GameBoard() {
     setMoves(0);
     setTimer(0);
     setGameStarted(false);
-  }, [difficulty, pairsCount, theme]);
+    setDisableClicks(false);
+    setGameOver(false);
+  };
+
+  useEffect(() => {
+    initializeGame();
+  }, [difficulty, theme]);
 
   useEffect(() => {
     let interval = null;
-    if (gameStarted) {
+    if (gameStarted && !gameOver) {
       interval = setInterval(() => setTimer((t) => t + 1), 1000);
     } else if (!gameStarted && timer !== 0) {
       clearInterval(interval);
     }
     return () => clearInterval(interval);
-  }, [gameStarted, timer]);
+  }, [gameStarted, gameOver]);
 
-  function handleCardClick(index) {
-    if (disableClicks || flipped.includes(index) || matched.includes(index)) return;
+  const handleCardClick = (index) => {
+    if (disableClicks || flipped.includes(index) || matched.includes(index) || gameOver) return;
 
     if (!gameStarted) setGameStarted(true);
 
@@ -75,22 +86,98 @@ export default function GameBoard() {
     } else {
       setFlipped([index]);
     }
-  }
+  };
 
   useEffect(() => {
     if (matched.length === cards.length && cards.length > 0) {
       setGameStarted(false);
-      alert(`🎉 You won! Moves: ${moves}, Time: ${timer} seconds.`);
+      setGameOver(true);
     }
-  }, [matched, cards.length, moves, timer]);
+  }, [matched, cards.length]);
+
+  const restartGame = () => initializeGame();
 
   return (
-    <div className="container">
-      <h1>Memory Game</h1>
-      <div style={{ marginBottom: "1rem" }}>
-        <span>Moves: {moves}</span> | <span>Time: {timer}s</span> | <span>Difficulty: {difficulty}</span> | <span>Theme: {theme}</span>
-      </div>
+    <div className="game-container" style={{ padding: "2rem", textAlign: "center" }}>
+      {/* Stats */}
       <div
+        style={{
+          marginBottom: "1rem",
+          color: "#eee",
+          fontSize: "1.2rem",
+          display: "flex",
+          justifyContent: "center",
+          gap: "2rem",
+          flexWrap: "wrap",
+          userSelect: "none",
+        }}
+      >
+        <div>Moves: {moves}</div>
+        <div>Time: {timer}s</div>
+        <div>Difficulty: {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</div>
+        <div>Theme: {theme.charAt(0).toUpperCase() + theme.slice(1)}</div>
+      </div>
+
+      {/* Toggle Info Button */}
+      <button
+        onClick={() => setShowInfo(true)}
+        style={{
+          marginBottom: "1rem",
+          padding: "0.5rem 1rem",
+          borderRadius: "6px",
+          border: "none",
+          backgroundColor: "#6D28D9",
+          color: "white",
+          cursor: "pointer",
+        }}
+      >
+        ❓ How to Play
+      </button>
+
+      {/* Info Modal */}
+      {showInfo && (
+        <div
+          style={{
+            position: "relative",
+            background: "#1f1f1f",
+            color: "#fff",
+            padding: "1.5rem",
+            borderRadius: "12px",
+            marginBottom: "1.5rem",
+            maxWidth: "500px",
+            marginInline: "auto",
+            textAlign: "left",
+          }}
+        >
+          <button
+            onClick={() => setShowInfo(false)}
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "15px",
+              background: "transparent",
+              border: "none",
+              color: "#ccc",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+            }}
+            aria-label="Close instructions"
+          >
+            ✖
+          </button>
+          <h2 style={{ marginBottom: "1rem", fontSize: "1.4rem" }}>Game Instructions</h2>
+          <ul style={{ lineHeight: "1.8", fontSize: "1.1rem", paddingLeft: "1rem" }}>
+            <li>Click on cards to flip them.</li>
+            <li>Match pairs of the same emoji.</li>
+            <li>Matched cards stay revealed.</li>
+            <li>Try to match all cards in the fewest moves and shortest time!</li>
+          </ul>
+        </div>
+      )}
+
+      {/* Game Board */}
+      <div
+        className="grid"
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(4, 80px)`,
@@ -104,26 +191,71 @@ export default function GameBoard() {
             <button
               key={card.id}
               onClick={() => handleCardClick(index)}
-              disabled={isFlipped}
               style={{
                 width: "80px",
                 height: "80px",
                 fontSize: "2rem",
                 borderRadius: "10px",
                 border: "none",
-                cursor: isFlipped ? "default" : "pointer",
+                cursor: isFlipped || gameOver ? "default" : "pointer",
                 backgroundColor: isFlipped ? "#6D28D9" : "#333",
                 color: isFlipped ? "white" : "transparent",
                 userSelect: "none",
                 transition: "background-color 0.3s ease",
               }}
-              aria-label={isFlipped ? `Card ${card.symbol}` : "Hidden card"}
+              disabled={isFlipped || gameOver}
+              aria-label={isFlipped ? `Card showing ${card.symbol}` : "Hidden card"}
             >
               {isFlipped ? card.symbol : "❓"}
             </button>
           );
         })}
       </div>
+
+      {/* Game Over Modal */}
+      {gameOver && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gameOverTitle"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            width: "100vw",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 10000,
+            padding: "2rem",
+            textAlign: "center",
+          }}
+        >
+          <h1 id="gameOverTitle">🎉 You won! 🎉</h1>
+          <p style={{ fontSize: "1.2rem", margin: "1rem 0" }}>
+            Moves: {moves} <br />
+            Time: {timer} seconds
+          </p>
+          <button
+            onClick={restartGame}
+            style={{
+              padding: "1rem 2rem",
+              fontSize: "1.2rem",
+              borderRadius: "10px",
+              border: "none",
+              background: "#6D28D9",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Play Again
+          </button>
+        </div>
+      )}
     </div>
   );
 }
