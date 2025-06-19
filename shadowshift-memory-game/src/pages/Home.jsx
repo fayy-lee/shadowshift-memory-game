@@ -1,24 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LevelSelector from "../components/LevelSelector";
+import ThemeToggle from "../components/ThemeToggle";  // import the toggle
 
 export default function Home() {
   const [selectedLevel, setSelectedLevel] = useState("easy");
+  const [selectedTheme, setSelectedTheme] = useState("fruits");
   const navigate = useNavigate();
 
   function startGame() {
-    navigate("/game", { state: { difficulty: selectedLevel } });
+    navigate("/game", { state: { difficulty: selectedLevel, theme: selectedTheme } });
   }
 
   return (
     <div className="container" style={{ textAlign: "center", paddingTop: "4rem" }}>
-      {/* Hero Section */}
       <h1 style={{ fontSize: "3rem", marginBottom: "0.5rem", color: "#fff" }}>🎮 Welcome to ShadowShift!</h1>
       <p style={{ fontSize: "1.2rem", color: "#aaa" }}>
         A fun and brain-boosting memory game for everyone!
       </p>
 
-      {/* Logo */}
       <div style={{ marginTop: "2rem" }}>
         <img
           src="/favicon.png"
@@ -27,7 +27,6 @@ export default function Home() {
         />
       </div>
 
-      {/* Instructions */}
       <div
         style={{
           marginTop: "3rem",
@@ -51,6 +50,49 @@ export default function Home() {
 
       {/* Difficulty Selector */}
       <LevelSelector selectedLevel={selectedLevel} onChange={setSelectedLevel} />
+
+      {/* Theme Selector */}
+      <div style={{ marginTop: "1.5rem", maxWidth: "400px", marginInline: "auto", textAlign: "left" }}>
+        <label
+          htmlFor="theme-select"
+          style={{ fontWeight: "bold", display: "block", marginBottom: "8px", color: "#eee" }}
+        >
+          Select Theme
+        </label>
+        <select
+          id="theme-select"
+          value={selectedTheme}
+          onChange={(e) => setSelectedTheme(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+            width: "100%",
+            background: "#222",
+            color: "#fff",
+            fontSize: "1rem",
+            border: "none",
+          }}
+        >
+          <option value="fruits">Fruits</option>
+          <option value="animals">Animals</option>
+        </select>
+      </div>
+
+      {/* Light/Dark Mode Toggle */}
+      <ThemeToggle />
+
+      <p
+        style={{
+          marginTop: "1rem",
+          color: "#bbb",
+          fontSize: "0.9rem",
+          maxWidth: "400px",
+          marginInline: "auto",
+          fontStyle: "italic",
+        }}
+      >
+        You can also change difficulty or theme later in Settings.
+      </p>
 
       {/* Start Game Button */}
       <button

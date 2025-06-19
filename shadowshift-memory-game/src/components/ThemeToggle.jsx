@@ -18,9 +18,21 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition"
+      style={{
+        marginTop: "1.5rem",
+        padding: "10px 20px",
+        fontSize: "1rem",
+        borderRadius: "8px",
+        border: "none",
+        backgroundColor: "#6D28D9",
+        color: "white",
+        cursor: "pointer",
+        transition: "background-color 0.3s",
+      }}
+      onMouseOver={(e) => (e.target.style.backgroundColor = "#7C3AED")}
+      onMouseOut={(e) => (e.target.style.backgroundColor = "#6D28D9")}
     >
-      {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     </button>
   );
 }

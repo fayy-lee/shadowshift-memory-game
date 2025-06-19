@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const symbols = ["🍎", "🍌", "🍇", "🍉", "🥝", "🍒", "🍍", "🥥"];
+const themes = {
+  fruits: ["🍎", "🍌", "🍇", "🍉", "🥝", "🍒", "🍍", "🥥"],
+  animals: ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐵", "🐯"],
+};
 
 function shuffleArray(array) {
   return [...array].sort(() => Math.random() - 0.5);
@@ -10,25 +13,24 @@ function shuffleArray(array) {
 export default function GameBoard() {
   const location = useLocation();
   const difficulty = location.state?.difficulty || "easy";
+  const theme = location.state?.theme || "fruits";
 
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
   const [disableClicks, setDisableClicks] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
   const [moves, setMoves] = useState(0);
   const [timer, setTimer] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
 
-  // Number of pairs based on difficulty
   const pairsCount = {
     easy: 4,
     medium: 6,
     hard: 8,
   }[difficulty] || 4;
 
-  // Initialize deck & reset game
   useEffect(() => {
+    const symbols = themes[theme] || themes.fruits;
     const selectedSymbols = symbols.slice(0, pairsCount);
     const deck = shuffleArray([...selectedSymbols, ...selectedSymbols]).map((symbol, index) => ({
       id: index,
@@ -40,15 +42,12 @@ export default function GameBoard() {
     setMoves(0);
     setTimer(0);
     setGameStarted(false);
-  }, [difficulty, pairsCount]);
+  }, [difficulty, pairsCount, theme]);
 
-  // Timer effect
   useEffect(() => {
     let interval = null;
     if (gameStarted) {
-      interval = setInterval(() => {
-        setTimer((t) => t + 1);
-      }, 1000);
+      interval = setInterval(() => setTimer((t) => t + 1), 1000);
     } else if (!gameStarted && timer !== 0) {
       clearInterval(interval);
     }
@@ -78,7 +77,6 @@ export default function GameBoard() {
     }
   }
 
-  // Check for win
   useEffect(() => {
     if (matched.length === cards.length && cards.length > 0) {
       setGameStarted(false);
@@ -87,82 +85,12 @@ export default function GameBoard() {
   }, [matched, cards.length, moves, timer]);
 
   return (
-    <div className="game-container" style={{ padding: "2rem", textAlign: "center" }}>
-      {/* Stats */}
-      <div
-        style={{
-          marginBottom: "1rem",
-          color: "#eee",
-          fontSize: "1.2rem",
-          display: "flex",
-          justifyContent: "center",
-          gap: "2rem",
-        }}
-      >
-        <div>Moves: {moves}</div>
-        <div>Time: {timer}s</div>
-        <div>Difficulty: {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</div>
+    <div className="container">
+      <h1>Memory Game</h1>
+      <div style={{ marginBottom: "1rem" }}>
+        <span>Moves: {moves}</span> | <span>Time: {timer}s</span> | <span>Difficulty: {difficulty}</span> | <span>Theme: {theme}</span>
       </div>
-
-      {/* Toggle Info Button */}
-      <button
-        onClick={() => setShowInfo(true)}
-        style={{
-          marginBottom: "1rem",
-          padding: "0.5rem 1rem",
-          borderRadius: "6px",
-          border: "none",
-          backgroundColor: "#6D28D9",
-          color: "white",
-          cursor: "pointer",
-        }}
-      >
-        ❓ How to Play
-      </button>
-
-      {/* Info Modal */}
-      {showInfo && (
-        <div
-          style={{
-            position: "relative",
-            background: "#1f1f1f",
-            color: "#fff",
-            padding: "1.5rem",
-            borderRadius: "12px",
-            marginBottom: "1.5rem",
-            maxWidth: "500px",
-            marginInline: "auto",
-            textAlign: "left",
-          }}
-        >
-          <button
-            onClick={() => setShowInfo(false)}
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "15px",
-              background: "transparent",
-              border: "none",
-              color: "#ccc",
-              fontSize: "1.5rem",
-              cursor: "pointer",
-            }}
-          >
-            ✖
-          </button>
-          <h2 style={{ marginBottom: "1rem", fontSize: "1.4rem" }}>Game Instructions</h2>
-          <ul style={{ lineHeight: "1.8", fontSize: "1.1rem", paddingLeft: "1rem" }}>
-            <li>Click on cards to flip them.</li>
-            <li>Match pairs of the same emoji.</li>
-            <li>Matched cards stay revealed.</li>
-            <li>Try to match all cards in the fewest moves and shortest time!</li>
-          </ul>
-        </div>
-      )}
-
-      {/* Game Board */}
       <div
-        className="grid"
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(4, 80px)`,
@@ -176,6 +104,7 @@ export default function GameBoard() {
             <button
               key={card.id}
               onClick={() => handleCardClick(index)}
+              disabled={isFlipped}
               style={{
                 width: "80px",
                 height: "80px",
@@ -186,8 +115,9 @@ export default function GameBoard() {
                 backgroundColor: isFlipped ? "#6D28D9" : "#333",
                 color: isFlipped ? "white" : "transparent",
                 userSelect: "none",
+                transition: "background-color 0.3s ease",
               }}
-              disabled={isFlipped}
+              aria-label={isFlipped ? `Card ${card.symbol}` : "Hidden card"}
             >
               {isFlipped ? card.symbol : "❓"}
             </button>
