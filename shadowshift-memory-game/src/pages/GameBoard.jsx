@@ -6,6 +6,13 @@ const allThemes = {
   animals: ["🐶", "🐱", "🦊", "🐸", "🐵", "🐮", "🐰", "🐼"],
 };
 
+const themeColors = {
+  fruits: "#6D28D9",  // purple
+  animals: "#F59E0B", // orange
+};
+
+const feedbackEmojis = ["🎯", "💡", "🚀", "🧠", "👏", "⭐"];
+
 function shuffleArray(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
@@ -13,11 +20,11 @@ function shuffleArray(array) {
 export default function GameBoard() {
   const location = useLocation();
 
-  // Read difficulty and theme from route state or default
   const difficulty = location.state?.difficulty || "easy";
   const theme = location.state?.theme || "fruits";
 
   const symbols = allThemes[theme] || allThemes.fruits;
+  const themeColor = themeColors[theme] || "#6D28D9";
 
   const pairsCount = {
     easy: 4,
@@ -34,6 +41,7 @@ export default function GameBoard() {
   const [timer, setTimer] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [feedbackEmoji, setFeedbackEmoji] = useState("🎉");
 
   const initializeGame = () => {
     const selectedSymbols = symbols.slice(0, pairsCount);
@@ -49,6 +57,7 @@ export default function GameBoard() {
     setGameStarted(false);
     setDisableClicks(false);
     setGameOver(false);
+    setFeedbackEmoji(feedbackEmojis[Math.floor(Math.random() * feedbackEmojis.length)]);
   };
 
   useEffect(() => {
@@ -59,8 +68,6 @@ export default function GameBoard() {
     let interval = null;
     if (gameStarted && !gameOver) {
       interval = setInterval(() => setTimer((t) => t + 1), 1000);
-    } else if (!gameStarted && timer !== 0) {
-      clearInterval(interval);
     }
     return () => clearInterval(interval);
   }, [gameStarted, gameOver]);
@@ -118,7 +125,7 @@ export default function GameBoard() {
         <div>Theme: {theme.charAt(0).toUpperCase() + theme.slice(1)}</div>
       </div>
 
-      {/* Toggle Info Button */}
+      {/* Info Button */}
       <button
         onClick={() => setShowInfo(true)}
         style={{
@@ -126,7 +133,7 @@ export default function GameBoard() {
           padding: "0.5rem 1rem",
           borderRadius: "6px",
           border: "none",
-          backgroundColor: "#6D28D9",
+          backgroundColor: themeColor,
           color: "white",
           cursor: "pointer",
         }}
@@ -137,6 +144,7 @@ export default function GameBoard() {
       {/* Info Modal */}
       {showInfo && (
         <div
+          className="info-modal"
           style={{
             position: "relative",
             background: "#1f1f1f",
@@ -175,14 +183,16 @@ export default function GameBoard() {
         </div>
       )}
 
-      {/* Game Board */}
+      {/* Game Grid */}
       <div
         className="grid"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(4, 80px)`,
+          gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))",
           gap: "1rem",
           justifyContent: "center",
+          maxWidth: "400px",
+          margin: "0 auto",
         }}
       >
         {cards.map((card, index) => {
@@ -198,7 +208,7 @@ export default function GameBoard() {
                 borderRadius: "10px",
                 border: "none",
                 cursor: isFlipped || gameOver ? "default" : "pointer",
-                backgroundColor: isFlipped ? "#6D28D9" : "#333",
+                backgroundColor: isFlipped ? themeColor : "#333",
                 color: isFlipped ? "white" : "transparent",
                 userSelect: "none",
                 transition: "background-color 0.3s ease",
@@ -212,7 +222,7 @@ export default function GameBoard() {
         })}
       </div>
 
-      {/* Game Over Modal */}
+      {/* Game Over Dialog */}
       {gameOver && (
         <div
           role="dialog"
@@ -235,7 +245,7 @@ export default function GameBoard() {
             textAlign: "center",
           }}
         >
-          <h1 id="gameOverTitle">🎉 You won! 🎉</h1>
+          <h1 id="gameOverTitle">{feedbackEmoji} You won! {feedbackEmoji}</h1>
           <p style={{ fontSize: "1.2rem", margin: "1rem 0" }}>
             Moves: {moves} <br />
             Time: {timer} seconds
@@ -247,7 +257,7 @@ export default function GameBoard() {
               fontSize: "1.2rem",
               borderRadius: "10px",
               border: "none",
-              background: "#6D28D9",
+              background: themeColor,
               color: "#fff",
               cursor: "pointer",
             }}
